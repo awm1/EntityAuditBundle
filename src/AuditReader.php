@@ -1021,7 +1021,11 @@ class AuditReader
                     $values = [$revision];
                     foreach (self::getRelationToSourceKeyColumns($assoc) as $sourceKeyJoinColumn => $sourceKeyColumn) {
                         $whereId[] = "{$sourceKeyJoinColumn} = ?";
-                        $values[] = $classMetadata->getFieldValue($entity, 'id');
+
+                        $reflField = $classMetadata->reflFields[$classMetadata->getFieldName($sourceKeyColumn) ?? 'id'];
+                        \assert(null !== $reflField);
+
+                        $values[] = $reflField->getValue($entity);
                     }
 
                     $whereSQL = implode(' AND ', $whereId);
