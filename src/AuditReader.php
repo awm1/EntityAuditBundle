@@ -1022,7 +1022,7 @@ class AuditReader
                     foreach (self::getRelationToSourceKeyColumns($assoc) as $sourceKeyJoinColumn => $sourceKeyColumn) {
                         $whereId[] = "{$sourceKeyJoinColumn} = ?";
 
-                        $reflField = $classMetadata->reflFields[$classMetadata->getFieldName($sourceKeyColumn) ?? 'id'];
+                        $reflField = $classMetadata->getSingleIdReflectionProperty();
                         \assert(null !== $reflField);
 
                         $values[] = $reflField->getValue($entity);
@@ -1110,7 +1110,7 @@ class AuditReader
                         )) {
                         foreach ($targetAssoc['relationToTargetKeyColumns'] as $targetKeyJoinColumn => $targetKeyColumn) {
                             $whereId[] = "{$targetKeyJoinColumn} = ?";
-                            $reflField = $classMetadata->reflFields['id'];
+                            $reflField = $classMetadata->getSingleIdReflectionProperty();
                             \assert(null !== $reflField);
                             $values[] = $reflField->getValue($entity);
                         }
