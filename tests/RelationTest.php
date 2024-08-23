@@ -22,6 +22,7 @@ use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\DataContainerEntity;
 use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\DataLegalEntity;
 use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\DataPrivateEntity;
 use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\FoodCategory;
+use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\ManyToManyMultipleRelationshipCustomIdNamedEntity;
 use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\ManyToManyMultipleRelationshipEntity;
 use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\ManyToManyMultipleTargetEntity;
 use Sonata\EntityAuditBundle\Tests\Fixtures\Relation\OneToOneAuditedEntity;
@@ -67,6 +68,7 @@ final class RelationTest extends BaseTest
         DataLegalEntity::class,
         DataPrivateEntity::class,
         DataContainerEntity::class,
+        ManyToManyMultipleRelationshipCustomIdNamedEntity::class,
         ManyToManyMultipleRelationshipEntity::class,
         ManyToManyMultipleTargetEntity::class,
     ];
@@ -91,6 +93,7 @@ final class RelationTest extends BaseTest
         DataLegalEntity::class,
         DataPrivateEntity::class,
         DataContainerEntity::class,
+        ManyToManyMultipleRelationshipCustomIdNamedEntity::class,
         ManyToManyMultipleRelationshipEntity::class,
         ManyToManyMultipleTargetEntity::class,
     ];
@@ -379,16 +382,48 @@ final class RelationTest extends BaseTest
         $manyToMany->addPrimaryTarget($targetOne);
         $manyToMany->addSecondaryTarget($targetTwo);
 
+        $targetThree = new ManyToManyMultipleTargetEntity();
+        $targetFour = new ManyToManyMultipleTargetEntity();
+
+        $manyToManyWithCustomNameOfIdColumn = new ManyToManyMultipleRelationshipCustomIdNamedEntity();
+        $manyToManyWithCustomNameOfIdColumn->setTitle('manyToMany#2');
+        $manyToManyWithCustomNameOfIdColumn->addPrimaryTarget($targetThree);
+        $manyToManyWithCustomNameOfIdColumn->addSecondaryTarget($targetFour);
+
         $em->persist($targetOne);
         $em->persist($targetTwo);
+        $em->persist($targetThree);
+        $em->persist($targetFour);
         $em->persist($manyToMany);
+        $em->persist($manyToManyWithCustomNameOfIdColumn);
 
-        $em->flush(); // #1
+        $em->flush(); // #1 + #2
 
+        // manyToMany#1
         $manyToManyId = $manyToMany->getId();
         static::assertNotNull($manyToManyId);
 
         $audited = $auditReader->find(ManyToManyMultipleRelationshipEntity::class, $manyToManyId, 1);
+
+        static::assertNotNull($audited);
+
+        // ensure that there is an audited entry for the primaryTargets property
+        static::assertInstanceOf(Collection::class, $audited->getPrimaryTargets());
+        static::assertCount(1, $audited->getPrimaryTargets());
+
+        // ensure that there is an audited entry for the secondaryTargets property
+        static::assertInstanceOf(Collection::class, $audited->getSecondaryTargets());
+        static::assertCount(1, $audited->getSecondaryTargets());
+
+        // manyToMany#2
+        $manyToManyId = $manyToManyWithCustomNameOfIdColumn->getId();
+        static::assertNotNull($manyToManyId);
+
+        $audited = $auditReader->find(
+            ManyToManyMultipleRelationshipCustomIdNamedEntity::class,
+            $manyToManyId,
+            1
+        );
 
         static::assertNotNull($audited);
 
