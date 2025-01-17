@@ -145,7 +145,7 @@ class CreateSchemaListener implements EventSubscriber
         \assert(null !== $primaryKey);
 
         $relatedTable->addForeignKeyConstraint(
-            $revisionsTable,
+            $revisionsTable->getName(),
             [$this->config->getRevisionFieldName()],
             $primaryKey->getColumns(),
             [],
