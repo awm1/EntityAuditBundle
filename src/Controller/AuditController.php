@@ -20,7 +20,7 @@ use SimpleThings\EntityAudit\Action\ViewEntityAction;
 use SimpleThings\EntityAudit\Action\ViewRevisionAction;
 use SimpleThings\EntityAudit\AuditManager;
 use SimpleThings\EntityAudit\AuditReader;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -36,7 +36,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
  *
  * NEXT_MAJOR: remove this controller
  */
-class AuditController extends Controller
+class AuditController extends AbstractController
 {
     /**
      * Renders a paginated list of revisions.
@@ -47,7 +47,7 @@ class AuditController extends Controller
      */
     public function indexAction($page = 1)
     {
-        $indexAction = new IndexAction($this->get('twig'), $this->getAuditReader());
+        $indexAction = new IndexAction($this->container->get('twig'), $this->getAuditReader());
 
         return $indexAction($page);
     }
@@ -63,7 +63,7 @@ class AuditController extends Controller
      */
     public function viewRevisionAction($rev)
     {
-        $viewRevisionAction = new ViewRevisionAction($this->get('twig'), $this->getAuditReader());
+        $viewRevisionAction = new ViewRevisionAction($this->container->get('twig'), $this->getAuditReader());
 
         return $viewRevisionAction($rev);
     }
@@ -78,7 +78,7 @@ class AuditController extends Controller
      */
     public function viewEntityAction($className, $id)
     {
-        $viewEntityAction = new ViewEntityAction($this->get('twig'), $this->getAuditReader());
+        $viewEntityAction = new ViewEntityAction($this->container->get('twig'), $this->getAuditReader());
 
         return $viewEntityAction($className, $id);
     }
@@ -94,7 +94,7 @@ class AuditController extends Controller
      */
     public function viewDetailAction($className, $id, $rev)
     {
-        $viewDetailAction = new ViewDetailAction($this->get('twig'), $this->getAuditReader());
+        $viewDetailAction = new ViewDetailAction($this->container->get('twig'), $this->getAuditReader());
 
         return $viewDetailAction($className, $id, $rev);
     }
@@ -111,7 +111,7 @@ class AuditController extends Controller
      */
     public function compareAction(Request $request, $className, $id, $oldRev = null, $newRev = null)
     {
-        $compareAction = new CompareAction($this->get('twig'), $this->getAuditReader());
+        $compareAction = new CompareAction($this->container->get('twig'), $this->getAuditReader());
 
         return $compareAction($request, $className, $id, $oldRev, $newRev);
     }
@@ -121,7 +121,7 @@ class AuditController extends Controller
      */
     protected function getAuditReader()
     {
-        return $this->get('simplethings_entityaudit.reader');
+        return $this->container->get('simplethings_entityaudit.reader');
     }
 
     /**
@@ -129,6 +129,6 @@ class AuditController extends Controller
      */
     protected function getAuditManager()
     {
-        return $this->get('simplethings_entityaudit.manager');
+        return $this->container->get('simplethings_entityaudit.manager');
     }
 }
