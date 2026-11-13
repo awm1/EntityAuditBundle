@@ -15,6 +15,9 @@ namespace SimpleThings\EntityAudit\Collection;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\Common\Collections\Criteria;
+use Doctrine\Common\Collections\ReadableCollection;
+use Doctrine\Common\Collections\Selectable;
 use Doctrine\ORM\Mapping\AssociationMapping;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use SimpleThings\EntityAudit\AuditConfiguration;
@@ -88,7 +91,7 @@ class AuditedCollection implements Collection
      * @return void
      */
     #[\ReturnTypeWillChange]
-    public function add(mixed $element)
+    public function add(mixed $element): void
     {
         throw new AuditedCollectionException('The AuditedCollection is read-only');
     }
@@ -104,7 +107,7 @@ class AuditedCollection implements Collection
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function contains(mixed $element)
+    public function contains(mixed $element): bool
     {
         $this->forceLoad();
 
@@ -117,7 +120,7 @@ class AuditedCollection implements Collection
      * @psalm-mutation-free See https://github.com/psalm/psalm-plugin-doctrine/issues/97
      */
     #[\ReturnTypeWillChange]
-    public function isEmpty()
+    public function isEmpty(): bool
     {
         $this->initialize();
 
@@ -130,7 +133,7 @@ class AuditedCollection implements Collection
      * @return T|null
      */
     #[\ReturnTypeWillChange]
-    public function remove($key)
+    public function remove($key): mixed
     {
         throw new AuditedCollectionException('Audited collections does not support removal');
     }
@@ -139,7 +142,7 @@ class AuditedCollection implements Collection
      * @return bool
      */
     #[\ReturnTypeWillChange]
-    public function removeElement(mixed $element)
+    public function removeElement(mixed $element): bool
     {
         throw new AuditedCollectionException('Audited collections does not support removal');
     }
@@ -152,7 +155,7 @@ class AuditedCollection implements Collection
      * @phpstan-param TKey $key
      */
     #[\ReturnTypeWillChange]
-    public function containsKey($key)
+    public function containsKey($key): bool
     {
         $this->initialize();
 
@@ -168,7 +171,7 @@ class AuditedCollection implements Collection
      * @phpstan-return T
      */
     #[\ReturnTypeWillChange]
-    public function get($key)
+    public function get($key): mixed
     {
         return $this->offsetGet($key);
     }
@@ -179,7 +182,7 @@ class AuditedCollection implements Collection
      * @phpstan-return list<TKey>
      */
     #[\ReturnTypeWillChange]
-    public function getKeys()
+    public function getKeys(): array
     {
         $this->initialize();
 
@@ -192,7 +195,7 @@ class AuditedCollection implements Collection
      * @phpstan-return list<T>
      */
     #[\ReturnTypeWillChange]
-    public function getValues()
+    public function getValues(): array
     {
         $this->forceLoad();
 
@@ -210,7 +213,7 @@ class AuditedCollection implements Collection
      * @phpstan-return array<TKey, T>
      */
     #[\ReturnTypeWillChange]
-    public function toArray()
+    public function toArray(): array
     {
         $this->forceLoad();
 
@@ -223,7 +226,7 @@ class AuditedCollection implements Collection
      * @phpstan-return T|false
      */
     #[\ReturnTypeWillChange]
-    public function first()
+    public function first(): mixed
     {
         $this->forceLoad();
 
@@ -236,7 +239,7 @@ class AuditedCollection implements Collection
      * @phpstan-return T|false
      */
     #[\ReturnTypeWillChange]
-    public function last()
+    public function last(): mixed
     {
         $this->forceLoad();
 
@@ -247,7 +250,7 @@ class AuditedCollection implements Collection
      * @return TKey|null
      */
     #[\ReturnTypeWillChange]
-    public function key()
+    public function key(): int|string|null
     {
         $this->forceLoad();
 
@@ -260,7 +263,7 @@ class AuditedCollection implements Collection
      * @phpstan-return T|false
      */
     #[\ReturnTypeWillChange]
-    public function current()
+    public function current(): mixed
     {
         $this->forceLoad();
 
@@ -273,7 +276,7 @@ class AuditedCollection implements Collection
      * @phpstan-return T|false
      */
     #[\ReturnTypeWillChange]
-    public function next()
+    public function next(): mixed
     {
         $this->forceLoad();
 
@@ -286,7 +289,7 @@ class AuditedCollection implements Collection
      * @phpstan-param \Closure(TKey, T):bool $p
      */
     #[\ReturnTypeWillChange]
-    public function exists(\Closure $p)
+    public function exists(\Closure $p): bool
     {
         $this->forceLoad();
 
@@ -300,7 +303,7 @@ class AuditedCollection implements Collection
      * @phpstan-return Collection<TKey, T>
      */
     #[\ReturnTypeWillChange]
-    public function filter(\Closure $p)
+    public function filter(\Closure $p): Collection
     {
         $this->forceLoad();
 
@@ -313,7 +316,7 @@ class AuditedCollection implements Collection
      * @phpstan-param \Closure(TKey, T):bool $p
      */
     #[\ReturnTypeWillChange]
-    public function forAll(\Closure $p)
+    public function forAll(\Closure $p): bool
     {
         $this->forceLoad();
 
@@ -329,7 +332,7 @@ class AuditedCollection implements Collection
      * @phpstan-return Collection<TKey, U>
      */
     #[\ReturnTypeWillChange]
-    public function map(\Closure $func)
+    public function map(\Closure $func): Collection
     {
         $this->forceLoad();
 
@@ -343,7 +346,7 @@ class AuditedCollection implements Collection
      * @phpstan-return array{0: Collection<TKey, T>, 1: Collection<TKey, T>}
      */
     #[\ReturnTypeWillChange]
-    public function partition(\Closure $p)
+    public function partition(\Closure $p): array
     {
         $this->forceLoad();
 
@@ -354,7 +357,7 @@ class AuditedCollection implements Collection
      * @return TKey|false
      */
     #[\ReturnTypeWillChange]
-    public function indexOf(mixed $element)
+    public function indexOf(mixed $element): false|int|string
     {
         $this->forceLoad();
 
@@ -370,11 +373,23 @@ class AuditedCollection implements Collection
      * @phpstan-return array<TKey,T>
      */
     #[\ReturnTypeWillChange]
-    public function slice($offset, $length = null)
+    public function slice($offset, $length = null): array
     {
         $this->forceLoad();
 
         return $this->loadedEntities->slice($offset, $length);
+    }
+
+    /**
+     * @return Collection<TKey, T>&Selectable<TKey,T>
+     *
+     * @phpstan-return Collection<TKey, T>&Selectable<TKey,T>
+     */
+    public function matching(Criteria $criteria): ReadableCollection
+    {
+        $this->forceLoad();
+
+        return $this->loadedEntities->matching($criteria);
     }
 
     /**
@@ -455,7 +470,7 @@ class AuditedCollection implements Collection
      * @phpstan-return T|null
      */
     #[\ReturnTypeWillChange]
-    public function findFirst(\Closure $p)
+    public function findFirst(\Closure $p): mixed
     {
         $this->forceLoad();
 
